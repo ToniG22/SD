@@ -2,210 +2,189 @@ package main
 
 import (
 	"context"
-	pb "eventsApp.com/grpc/protos"
-	"google.golang.org/grpc"
-	"log"
-	"math/rand"
-	"net"
-	"strconv"
 	"fmt"
-	"os"
-	"os/signal"
-	"go.mongodb.org/mongo-driver/bson"
+	"log"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-const (
-	port = ":50051"
-)
-
-var events []*pb.EventInfo
-
-type EventItem struct {
+type Event struct {
 	Id           primitive.ObjectID `bson:"_id,omitempty"`
 	Local        string             `bson:"local"`
-	Date         string             `bson:"date"`
+	Date         time.Time          `bson:"date"`
 	EventTime    string             `bson:"eventTime"`
-	Participants int32              `bson:"participants"`
+	Participants string             `bson:"participants"`
 	Price        float32            `bson:"price"`
 }
 
-type eventServer struct {
-	pb.UnimplementedEventServer
-}
 var db *mongo.Client
 var eventdb *mongo.Collection
 var mongoCtx context.Context
 
 func main() {
-	
-	// Configure 'log' package to give file name and line number on eg. log.Fatal
-	// just the filename & line number:
-	// log.SetFlags(log.Lshortfile)
-	// Or add timestamps and pipe file name and line number to it:
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	fmt.Println("Hello World")
 
-	fmt.Println("Starting server on port :50051...")
-
-	// 50051 is the default port for gRPC
-	// Ideally we'd use 0.0.0.0 instead of localhost as well
-	listener, err := net.Listen("tcp", port)
-
-	if err != nil {
-		log.Fatalf("Unable to listen on port :50051: %v", err)
-	}
-
-	// slice of gRPC options
-	// Here we can configure things like TLS
-	opts := []grpc.ServerOption{}
-	// var s *grpc.Server
-	s := grpc.NewServer(opts...)
-	// var srv *BlogServiceServer
-	srv := &eventServer{}
-
-	pb.RegisterEventServer(s, srv)
-
-	// Initialize MongoDb client
-	fmt.Println("Connecting to MongoDB...")
-	mongoCtx = context.Background()
-	db, err = mongo.Connect(mongoCtx, options.Client().ApplyURI("mongodb+srv://Michief:2005130mm@cluster0.uznqk.mongodb.net/sd"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.Ping(mongoCtx, nil)
-	if err != nil {
-		log.Fatalf("Could not connect to MongoDB: %v\n", err)
-	} else {
-		fmt.Println("Connected to Mongodb")
-	}
-
-	eventdb = db.Database("sd").Collection("events")
-
-	// Start the server in a child routine
+	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowMethods: "GET, POST, PUT, DELETE",
+	}))
 	go func() {
-		if err := s.Serve(listener); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
-		}
-	}()
-	fmt.Println("Server succesfully started on port :50051")
-
-	// Bad way to stop the server
-	// if err := s.Serve(listener); err != nil {
-	// 	log.Fatalf("Failed to serve: %v", err)
-	// }
-	// Right way to stop the server using a SHUTDOWN HOOK
-
-	// Create a channel to receive OS signals
-	c := make(chan os.Signal)
-
-	// Relay os.Interrupt to our channel (os.Interrupt = CTRL+C)
-	// Ignore other incoming signals
-	signal.Notify(c, os.Interrupt)
-
-	// Block main routine until a signal is received
-	// As long as user doesn't press CTRL+C a message is not passed
-	// And our main routine keeps running
-	// If the main routine were to shutdown so would the child routine that is Serving the server
-	<-c
-
-	// After receiving CTRL+C Properly stop the server
-	fmt.Println("\nStopping the server...")
-	s.Stop()
-	listener.Close()
-	fmt.Println("Closing MongoDB connection")
-	db.Disconnect(mongoCtx)
-	fmt.Println("Done.")
-}
-
-
-func (s *eventServer) GetEvents(in *pb.Empty, stream pb.Event_GetEventsServer) error {
-	data := &EventItem{}
-	cursor, err := eventdb.Find(context.Background(), bson.D{{}})
-	if err != nil {
-		return status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Internal error: %v", err),
-		)
-	}
-	defer cursor.Close(context.Background())
-	for cursor.Next(context.Background()) {
-		err := cursor.Decode(data)
+		mongoCtx = context.Background()
+		clientOptions := options.Client().ApplyURI("mongodb+srv://Michief:2005130mm@cluster0.uznqk.mongodb.net/sd")
+		var err error
+		db, err = mongo.Connect(mongoCtx, clientOptions)
 		if err != nil {
-			return status.Errorf(
-				codes.Unavailable,
-				fmt.Sprintf("Could not decode data: %v", err),
-			)
+			log.Fatal(err)
 		}
-		stream.Send(&pb.EventInfo{
-			Id:           data.Id.Hex(),
-			Local:        data.Local,
-			Date:         data.Date,
-			EventTime:    data.EventTime,
-			Participants: data.Participants,
-			Price:        data.Price,
-		})
-	}
-	if err := cursor.Err(); err != nil {
-		return status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Unknown cursor error: %v", err),
-		)
-	}
-	return nil
-}
-
-func (s *eventServer) GetEvent(ctx context.Context, in *pb.EventId) (*pb.EventInfo, error) {
-	oid, err := primitive.ObjectIDFromHex(in.GetId())
-	if err != nil {
-		return nil, status.Errorf(
-			codes.InvalidArgument,
-			fmt.Sprintf("Could not convert to ObjectId: %v", err),
-		)
-	}
-	result := eventdb.FindOne(ctx, bson.M{"_id": oid})
-	data := EventItem{}
-
-	if err := result.Decode(&data); err != nil {
-		return nil, status.Errorf(
-			codes.NotFound,
-			fmt.Sprintf("Could not find event with Object Id %s: %v", in.GetId(), err),
-		)
-	}
-	response := &pb.EventInfo{
-		Id:           data.Id.Hex(),
-		Local:        data.Local,
-		Date:         data.Date,
-		EventTime:    data.EventTime,
-		Participants: data.Participants,
-		Price:        data.Price,
-	}
-	return response, nil
-}
-
-func (s *eventServer) CreateEvent(ctx context.Context, in *pb.EventInfo) (*pb.EventId, error) {
-	log.Printf("Received: %v", in)
-	res := &pb.EventId{}
-	res.Id = strconv.Itoa(rand.Intn(10000000))
-	in.Id = res.GetId()
-	events = append(events, in)
-	return res, nil
-}
-
-func (s *eventServer) UpdateEvent(ctx context.Context, in *pb.EventInfo) (*pb.Status, error) {
-	log.Printf("Received: %v", in)
-	res := &pb.Status{}
-	for index, event := range events {
-		if event.GetId() == in.GetId() {
-			events = append(events[:index], events[index+1:]...)
-			in.Id = event.GetId()
-			events = append(events, in)
-			res.Status = "Updated"
-			break
+		err = db.Ping(mongoCtx, nil)
+		if err != nil {
+			log.Fatal(err)
 		}
-	}
-	return res, nil
+		eventdb = db.Database("sd").Collection("events")
+		fmt.Println("Connected to MongoDB!")
+	}()
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		log.Println("Hello World")
+		return c.SendString("Hello, World 👋🦝!")
+	})
+
+	app.Get("/events", func(c *fiber.Ctx) error {
+		log.Println("Get Events")
+
+		// Retrieve events from MongoDB
+		cursor, err := eventdb.Find(mongoCtx, primitive.D{})
+		if err != nil {
+			log.Fatal(err)
+			return c.Status(500).SendString("Internal Server Error")
+		}
+		defer cursor.Close(mongoCtx)
+
+		var events []*Event
+		if err := cursor.All(mongoCtx, &events); err != nil {
+			log.Fatal(err)
+			return c.Status(500).SendString("Internal Server Error")
+		}
+
+		return c.JSON(events)
+	})
+
+	app.Get("/events/:id", func(c *fiber.Ctx) error {
+		log.Println("Get Event")
+
+		paramID := c.Params("id")
+		id, err := primitive.ObjectIDFromHex(paramID)
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
+		}
+
+		// Retrieve a specific event from MongoDB
+		var event Event
+		err = eventdb.FindOne(mongoCtx, primitive.M{"_id": id}).Decode(&event)
+		if err != nil {
+			log.Fatal(err)
+			return c.Status(404).SendString("Event not found")
+		}
+
+		return c.JSON(event)
+	})
+
+	app.Post("/events", func(c *fiber.Ctx) error {
+		log.Println("Create Event")
+		rawBody := c.Body()
+    	log.Printf("Raw Request Body: %s", rawBody)
+		event := new(Event)
+		
+		// Attempt to parse the request body into the Event struct
+		if err := c.BodyParser(&event); err != nil {
+			log.Println("Error parsing request body:", err)
+			return c.Status(400).SendString("Invalid request body")
+		}
+	
+		// Insert the event into MongoDB
+		result, err := eventdb.InsertOne(mongoCtx, event)
+		if err != nil {
+			log.Println("Error inserting event into MongoDB:", err)
+			return c.Status(500).SendString("Internal Server Error")
+		}
+	
+		// Set the generated ObjectID to the event
+		event.Id = result.InsertedID.(primitive.ObjectID)
+	
+		return c.JSON(event)
+	})
+
+	app.Patch("/events/:id", func(c *fiber.Ctx) error {
+		log.Println("Update Event")
+
+		rawBody := c.Body()
+  		log.Printf("Raw Request Body: %s", rawBody)
+	
+		id, err := primitive.ObjectIDFromHex(c.Params("id"))
+		if err != nil {
+			log.Println("Error converting ID:", err)
+			return c.Status(400).SendString("Invalid ID")
+		}
+	
+		// Create a map to store the fields that need to be updated
+		updateFields := make(map[string]interface{})
+	
+		// Attempt to parse the request body into a map
+		if err := c.BodyParser(&updateFields); err != nil {
+			log.Println("Error parsing request body:", err)
+			return c.Status(400).SendString("Invalid request body")
+		}
+	
+		// Construct the update document
+		update := primitive.D{{Key: "$set", Value: updateFields}}
+	
+		// Update the event in MongoDB
+		result, err := eventdb.UpdateOne(mongoCtx, primitive.M{"_id": id}, update)
+		if err != nil {
+			log.Println("Error updating event in MongoDB:", err)
+			return c.Status(500).SendString("Internal Server Error")
+		}
+	
+		// Check if any documents were modified
+		if result.ModifiedCount == 0 {
+			return c.Status(404).SendString("Event not found or no changes applied")
+		}
+	
+		return c.SendString("Event updated successfully")
+	})
+
+	app.Delete("/events/:id", func(c *fiber.Ctx) error {
+		log.Println("Delete Event")
+	
+		id, err := primitive.ObjectIDFromHex(c.Params("id"))
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
+		}
+	
+		// Delete the event from MongoDB
+		result, err := eventdb.DeleteOne(mongoCtx, primitive.M{"_id": id})
+		if err != nil {
+			log.Fatal(err)
+			return c.Status(500).SendString("Internal Server Error")
+		}
+	
+		// Check if any documents were deleted
+		if result.DeletedCount == 0 {
+			return c.Status(404).SendString("Event not found")
+		}
+	
+		return c.SendString("Event deleted successfully")
+	})
+	
+
+	
+
+	log.Fatal(app.Listen(":3000"))
 }
