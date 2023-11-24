@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option go_package = "eventsApp.com/grpc/protos";
+option java_multiple_files = true;
+option java_package = "io-grpc.appl.eventsApp";
+option java_outer_classname = "EventsAppProto";
+option objc_class_prefix = "MAP";
+
+package eventsApp;
+
+
+
+service Event {
+    rpc GetEvents (Empty) returns (stream EventInfo);
+    rpc GetEvent (EventId) returns (EventInfo);
+    rpc CreateEvent (EventInfo) returns (EventId);
+    rpc UpdateEvent (EventInfo) returns (Status);
+    rpc DeleteEvent (EventId) returns (Status);
+}
+
+message Empty {}
+
+message EventId {
+    string id = 1;
+}
+
+message EventInfo {
+    string id = 1;
+    string local = 2;
+    string date = 3;
+    string eventTime = 4;
+    int32 participants = 5;
+    float price = 6;
+}
+
+message Status {
+    string status = 1;
+}
