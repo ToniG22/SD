@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../assets/home.png" />
+    <title>SD - Add Event</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="import" href="../components/header.html">
+    <script src="../utils/add-event.js" type="module"></script>
+</head>
+
+<body class="add-event">
+    <div class="nav-bar" id="header"></div>
+    <div class="center-content">
+        <h1>Add Event</h1>
+
+        <!-- Add Event Form -->
+        <form class="style-form" id="event-form">
+            <label for="local">Local:</label>
+            <input type="text" id="local" name="local" required><br>
+
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required><br>
+
+            <label for="time">Time:</label>
+            <input type="time" id="time" name="time" required><br>
+
+            <label for="participants">Number of Participants:</label>
+            <input type="number" id="participants" name="participants" min="0" required><br>
+
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" min="0" required><br>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <script src="../app.js"></script>
+</body>
+
+</html>
