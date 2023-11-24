@@ -1,5 +1,5 @@
 // Function to handle form submission
-function handleFormSubmit(event: Event) {
+function handleFormSubmit(event) {
     event.preventDefault();
 
     const localInput = document.getElementById('local') as HTMLInputElement;
@@ -20,7 +20,36 @@ function handleFormSubmit(event: Event) {
     console.log('Time:', time);
     console.log('Number of Participants:', participants);
     console.log('Price:', price);
+    
+    // Create an object with the form data
+    const eventData = {
+        local: local,
+        date: new Date(date),
+        eventTime: time,
+        participants: participants,
+        price: price
+    };
+
+    // Make a POST request to the server
+    fetch('http://localhost:3000/events', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData)  // Convert the object to a JSON string
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        // Handle success, e.g., update UI or navigate to another page
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Handle error, e.g., display an error message to the user
+    });
 }
+
+
 
 // Add an event listener to the form's submit event
 const eventForm = document.getElementById('event-form');

@@ -18,8 +18,8 @@ type Event struct {
 	Local        string             `bson:"local"`
 	Date         time.Time          `bson:"date"`
 	EventTime    string             `bson:"eventTime"`
-	Participants string             `bson:"participants"`
-	Price        float32            `bson:"price"`
+	Participants int32            	`bson:"participants"`
+	Price        float64			`bson:"price"`
 }
 
 var db *mongo.Client
@@ -27,8 +27,6 @@ var eventdb *mongo.Collection
 var mongoCtx context.Context
 
 func main() {
-	fmt.Println("Hello World")
-
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
