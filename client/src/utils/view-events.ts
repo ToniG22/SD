@@ -1,88 +1,93 @@
 // Function to populate table
+
+interface events {
+  Date: string;
+  EventTime: string;
+  Id: string;
+  Local: string;
+  Participants: number;
+  Price: number;
+}
+[];
+
 function populateTable(): void {
   const tableBody: HTMLTableSectionElement | null =
     document.querySelector("tbody");
 
-  // Sample event data
-  const events: Array<{
-    local: string;
-    dateTime: string;
-    participants: number;
-    price: number;
-  }> = [
-    {
-      local: "Event 1 Local",
-      dateTime: "2023-11-30T14:00",
-      participants: 50,
-      price: 10.99,
+  fetch("http://localhost:3000/events", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
     },
-    {
-      local: "Event 2 Local",
-      dateTime: "2023-12-15T19:30",
-      participants: 30,
-      price: 15.99,
-    },
-  ];
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Success:", data);
+      data.forEach((event: events) => {
+        const row: HTMLTableRowElement = document.createElement("tr");
+        row.innerHTML = `
+                  <td><span class="editable">${event.Local}</span><input type="text" class="edit-field" value="${event.Local}" style="display:none;"></td>
+                  <td><span class="editable">${event.Date}</span><input type="datetime-local" class="edit-field" value="${event.Date}" style="display:none;"></td>
+                  <td><span class="editable">${event.Participants}</span><input type="text" class="edit-field" value="${event.Participants}" style="display:none;"></td>
+                  <td><span class="editable">${event.Price}</span><input type="text" class="edit-field" value="${event.Price}" style="display:none;"></td>
+                  <td>
+                      <button class="edit-button">Edit</button>
+                      <button class="save-button" style="display:none;">Save</button>
+                      <button class="cancel-button" style="display:none;">Cancel</button>
+                      <button class="delete-button" data-local="${event.Local}">Delete</button>
+                  </td>
+              `;
 
-  // Populate the table with event data
-  events.forEach((event) => {
-    const row: HTMLTableRowElement = document.createElement("tr");
-    row.innerHTML = `
-              <td><span class="editable">${event.local}</span><input type="text" class="edit-field" value="${event.local}" style="display:none;"></td>
-              <td><span class="editable">${event.dateTime}</span><input type="datetime-local" class="edit-field" value="${event.dateTime}" style="display:none;"></td>
-              <td><span class="editable">${event.participants}</span><input type="text" class="edit-field" value="${event.participants}" style="display:none;"></td>
-              <td><span class="editable">${event.price}</span><input type="text" class="edit-field" value="${event.price}" style="display:none;"></td>
-              <td>
-                  <button class="edit-button">Edit</button>
-                  <button class="save-button" style="display:none;">Save</button>
-                  <button class="cancel-button" style="display:none;">Cancel</button>
-                  <button class="delete-button" data-local="${event.local}">Delete</button>
-              </td>
-          `;
+        // Attach event handlers for edit and delete buttons
+        const editButton: HTMLButtonElement = row.querySelector(".edit-button");
+        const saveButton: HTMLButtonElement = row.querySelector(".save-button");
+        const cancelButton: HTMLButtonElement =
+          row.querySelector(".cancel-button");
+        const deleteButton: HTMLButtonElement =
+          row.querySelector(".delete-button");
+        const editableFields: NodeListOf<HTMLElement> =
+          row.querySelectorAll(".editable");
+        const editFields: NodeListOf<HTMLInputElement> =
+          row.querySelectorAll(".edit-field");
 
-    // Attach event handlers for edit and delete buttons
-    const editButton: HTMLButtonElement = row.querySelector(".edit-button");
-    const saveButton: HTMLButtonElement = row.querySelector(".save-button");
-    const cancelButton: HTMLButtonElement = row.querySelector(".cancel-button");
-    const deleteButton: HTMLButtonElement = row.querySelector(".delete-button");
-    const editableFields: NodeListOf<HTMLElement> =
-      row.querySelectorAll(".editable");
-    const editFields: NodeListOf<HTMLInputElement> =
-      row.querySelectorAll(".edit-field");
+        editButton.addEventListener("click", () =>
+          handleEdit(
+            editButton,
+            saveButton,
+            cancelButton,
+            editableFields,
+            editFields
+          )
+        );
+        saveButton.addEventListener("click", () =>
+          handleSave(
+            editButton,
+            saveButton,
+            cancelButton,
+            editableFields,
+            editFields
+          )
+        );
+        cancelButton.addEventListener("click", () =>
+          handleCancel(
+            editButton,
+            saveButton,
+            cancelButton,
+            editableFields,
+            editFields
+          )
+        );
+        deleteButton.addEventListener("click", handleDelete);
 
-    editButton.addEventListener("click", () =>
-      handleEdit(
-        editButton,
-        saveButton,
-        cancelButton,
-        editableFields,
-        editFields
-      )
-    );
-    saveButton.addEventListener("click", () =>
-      handleSave(
-        editButton,
-        saveButton,
-        cancelButton,
-        editableFields,
-        editFields
-      )
-    );
-    cancelButton.addEventListener("click", () =>
-      handleCancel(
-        editButton,
-        saveButton,
-        cancelButton,
-        editableFields,
-        editFields
-      )
-    );
-    deleteButton.addEventListener("click", handleDelete);
-
-    if (tableBody) {
-      tableBody.appendChild(row);
-    }
-  });
+        if (tableBody) {
+          tableBody.appendChild(row);
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      // Handle error, e.g., display an error message to the user
+    });
 }
 
 // Handle edit button click

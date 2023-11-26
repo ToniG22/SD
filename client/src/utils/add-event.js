@@ -17,7 +17,6 @@ function handleFormSubmit(event) {
     console.log('Time:', time);
     console.log('Number of Participants:', participants);
     console.log('Price:', price);
-    console.log(new Date(date));
     // Create an object with the form data
     const eventData = {
         local: local,
