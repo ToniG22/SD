@@ -71,11 +71,11 @@ async function handleSave(editButton, saveButton, cancelButton, editableFields, 
             const parsedDate = new Date(inputDate);
             const formattedDate = parsedDate.toISOString();
             const eventData = {
-                Date: formattedDate,
-                EventTime: "",
-                Local: row.querySelector("td[data-id] .edit-field.edit-local")?.value || "",
-                Participants: row.querySelector("td[data-id] .edit-field.edit-participants")?.value || "",
-                Price: row.querySelector("td[data-id] .edit-field.edit-price")?.value || "",
+                date: new Date(formattedDate),
+                eventTime: "",
+                local: row.querySelector("td[data-id] .edit-field.edit-local")?.value || "",
+                participants: parseInt(row.querySelector("td[data-id] .edit-field.edit-participants")?.value) || 0,
+                price: parseFloat(row.querySelector("td[data-id] .edit-field.edit-price")?.value) || 0,
             };
             console.log(eventData);
             try {
@@ -85,7 +85,7 @@ async function handleSave(editButton, saveButton, cancelButton, editableFields, 
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ eventData }),
+                    body: JSON.stringify(eventData),
                 });
                 if (response.ok) {
                     console.log("Event data updated successfully");

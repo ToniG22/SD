@@ -64,12 +64,13 @@ func main() {
 			return c.Status(500).SendString("Internal Server Error")
 		}
 		defer cursor.Close(mongoCtx)
-
+		log.Println(cursor)
 		var events []*Event
 		if err := cursor.All(mongoCtx, &events); err != nil {
 			log.Fatal(err)
 			return c.Status(500).SendString("Internal Server Error")
 		}
+		log.Println(c.JSON(events))
 
 		return c.JSON(events)
 	})
@@ -128,19 +129,20 @@ func main() {
 			log.Println("Error converting ID:", err)
 			return c.Status(400).SendString("Invalid ID")
 		}
+		
 	
 		// Create a new Event struct to hold the updated fields
 		updateFields := make(map[string]interface{})
-	
+		log.Println(updateFields)
 		// Parse the request body into a map
 		if err := c.BodyParser(&updateFields); err != nil {
 			log.Println("Error parsing request body:", err)
 			return c.Status(400).SendString("Invalid request body")
 		}
-	
+
 		// Construct the update document
 		update := primitive.D{{Key: "$set", Value: updateFields}}
-	
+
 		// Update the event in MongoDB
 		result, err := eventdb.UpdateOne(mongoCtx, primitive.M{"_id": id}, update)
 		if err != nil {

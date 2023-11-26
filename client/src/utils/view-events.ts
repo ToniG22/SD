@@ -160,27 +160,27 @@ async function handleSave(
       const parsedDate = new Date(inputDate);
       const formattedDate = parsedDate.toISOString();
       const eventData = {
-        Date: formattedDate,
-        EventTime: "",
-        Local:
+        date: new Date(formattedDate),
+        eventTime: "",
+        local:
           (
             row.querySelector(
               "td[data-id] .edit-field.edit-local"
             ) as HTMLInputElement
           )?.value || "",
 
-        Participants:
-          (
+        participants:
+          parseInt((
             row.querySelector(
               "td[data-id] .edit-field.edit-participants"
             ) as HTMLInputElement
-          )?.value || "",
-        Price:
-          (
+          )?.value) || 0,
+        price:
+          parseFloat((
             row.querySelector(
               "td[data-id] .edit-field.edit-price"
             ) as HTMLInputElement
-          )?.value || "",
+          )?.value) || 0,
       };
       console.log(eventData);
       try {
@@ -192,7 +192,7 @@ async function handleSave(
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ eventData }),
+            body: JSON.stringify( eventData ),
           }
         );
 
