@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sd-frontend-deployment-project
+  labels:
+    app: sd-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sd-frontend
+  template:
+    metadata:
+      labels:
+        app: sd-frontend
+    spec:
+      containers:
+        - name: sd-frontend
+          image: tonig22/sd_client:2
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+          ports:
+            - containerPort: 8080
