@@ -31,7 +31,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept",
-		AllowMethods: "GET, POST, PUT, DELETE",
+		AllowMethods: "GET, POST, PUT, DELETE,PATCH",
 	}))
 	go func() {
 		mongoCtx = context.Background()
@@ -121,20 +121,18 @@ func main() {
 
 	app.Patch("/events/:id", func(c *fiber.Ctx) error {
 		log.Println("Update Event")
-
-		rawBody := c.Body()
-  		log.Printf("Raw Request Body: %s", rawBody)
 	
+		// Get the event ID from the request params
 		id, err := primitive.ObjectIDFromHex(c.Params("id"))
 		if err != nil {
 			log.Println("Error converting ID:", err)
 			return c.Status(400).SendString("Invalid ID")
 		}
 	
-		// Create a map to store the fields that need to be updated
+		// Create a new Event struct to hold the updated fields
 		updateFields := make(map[string]interface{})
 	
-		// Attempt to parse the request body into a map
+		// Parse the request body into a map
 		if err := c.BodyParser(&updateFields); err != nil {
 			log.Println("Error parsing request body:", err)
 			return c.Status(400).SendString("Invalid request body")
