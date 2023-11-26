@@ -1,0 +1,10 @@
+version: '3'
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Use the name of your Dockerfile
+    ports:
+      - "8080:8080"  # Map port 3000 in the container to port 3000 on the host
+    volumes:
+      - .:/client  # Mount the current directory into the container to allow code changes without rebuilding the image
