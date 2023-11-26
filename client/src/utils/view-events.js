@@ -130,16 +130,36 @@ function handleCancel(editButton, saveButton, cancelButton, editableFields, edit
     editFields.forEach((field) => (field.style.display = "none"));
 }
 // Handle delete button click
-function handleDelete(event) {
+// Handle delete button click
+async function handleDelete(event) {
     const button = event.currentTarget;
-    const local = button.getAttribute("data-local");
-    // Implement your delete logic here
-    if (local) {
-        console.log(`Delete clicked for event with local: ${local}`);
-    }
-    // Remove the table row from the DOM
+    // Find the closest table row
     const row = button.closest("tr");
     if (row) {
+        // Get the event ID from the data-id attribute
+        const eventId = row
+            .querySelector("td[data-id]")
+            ?.getAttribute("data-id");
+        if (eventId) {
+            await fetch(`http://localhost:3000/events/${eventId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((response) => {
+                if (response.ok) {
+                    console.log(`Event with ID ${eventId} deleted successfully`);
+                }
+                else {
+                    console.error(`Failed to delete event with ID ${eventId}`);
+                }
+            })
+                .catch((error) => {
+                console.error("Error deleting event:", error);
+            });
+        }
+        // Remove the table row from the DOM
         row.remove();
     }
 }
