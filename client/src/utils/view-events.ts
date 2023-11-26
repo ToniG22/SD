@@ -22,19 +22,44 @@ function populateTable(): void {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log("Success:", data);
       data.forEach((event: events) => {
         const row: HTMLTableRowElement = document.createElement("tr");
         row.innerHTML = `
-                  <td><span class="editable">${event.Local}</span><input type="text" class="edit-field" value="${event.Local}" style="display:none;"></td>
-                  <td><span class="editable">${event.Date}</span><input type="datetime-local" class="edit-field" value="${event.Date}" style="display:none;"></td>
-                  <td><span class="editable">${event.Participants}</span><input type="text" class="edit-field" value="${event.Participants}" style="display:none;"></td>
-                  <td><span class="editable">${event.Price}</span><input type="text" class="edit-field" value="${event.Price}" style="display:none;"></td>
+                  <td data-id="${
+                    event.Id
+                  }"><span class="editable editable-local">${
+          event.Local
+        }</span><input type="text" class="edit-field edit-local" value="${
+          event.Local
+        }" style="display:none;"></td>
+                  <td data-id="${
+                    event.Id
+                  }"><span class="editable editable-date">${
+          event.Date
+        }</span><input type="datetime-local" class="edit-field edit-date" value="${formatDateTime(
+          event.Date
+        )}" style="display:none;"></td>
+                  <td data-id="${
+                    event.Id
+                  }"><span class="editable editable-participants">${
+          event.Participants
+        }</span><input type="text" class="edit-field edit-participants" value="${
+          event.Participants
+        }" style="display:none;"></td>
+                  <td data-id="${
+                    event.Id
+                  }"><span class="editable editable-price">${
+          event.Price
+        }</span><input type="text" class="edit-field edit-price" value="${
+          event.Price
+        }" style="display:none;"></td>
                   <td>
                       <button class="edit-button">Edit</button>
                       <button class="save-button" style="display:none;">Save</button>
                       <button class="cancel-button" style="display:none;">Cancel</button>
-                      <button class="delete-button" data-local="${event.Local}">Delete</button>
+                      <button class="delete-button" data-local="${
+                        event.Local
+                      }">Delete</button>
                   </td>
               `;
 
@@ -89,7 +114,6 @@ function populateTable(): void {
       // Handle error, e.g., display an error message to the user
     });
 }
-
 // Handle edit button click
 function handleEdit(
   editButton: HTMLButtonElement,
@@ -98,7 +122,6 @@ function handleEdit(
   editableFields: NodeListOf<HTMLElement>,
   editFields: NodeListOf<HTMLInputElement>
 ): void {
-  // Hide the edit button and show save and cancel buttons
   editButton.style.display = "none";
   saveButton.style.display = "inline-block";
   cancelButton.style.display = "inline-block";
@@ -109,17 +132,80 @@ function handleEdit(
 }
 
 // Handle save button click
-function handleSave(
+async function handleSave(
   editButton: HTMLButtonElement,
   saveButton: HTMLButtonElement,
   cancelButton: HTMLButtonElement,
   editableFields: NodeListOf<HTMLElement>,
   editFields: NodeListOf<HTMLInputElement>
-): void {
+): Promise<void> {
   // Hide the save and cancel buttons and show the edit button
   editButton.style.display = "inline-block";
   saveButton.style.display = "none";
   cancelButton.style.display = "none";
+  const row: HTMLTableRowElement | null = editButton.closest("tr");
+  if (row) {
+    const eventId: string | null = row
+      .querySelector("td[data-id]")
+      ?.getAttribute("data-id");
+    if (eventId) {
+      const inputDate: string =
+        (
+          row.querySelector(
+            "td[data-id] .edit-field.edit-date"
+          ) as HTMLInputElement
+        )?.value || "";
+
+      // Parse the input date and format it
+      const parsedDate = new Date(inputDate);
+      const formattedDate = parsedDate.toISOString();
+      const eventData = {
+        Date: formattedDate,
+        EventTime: "",
+        Local:
+          (
+            row.querySelector(
+              "td[data-id] .edit-field.edit-local"
+            ) as HTMLInputElement
+          )?.value || "",
+
+        Participants:
+          (
+            row.querySelector(
+              "td[data-id] .edit-field.edit-participants"
+            ) as HTMLInputElement
+          )?.value || "",
+        Price:
+          (
+            row.querySelector(
+              "td[data-id] .edit-field.edit-price"
+            ) as HTMLInputElement
+          )?.value || "",
+      };
+      console.log(eventData);
+      try {
+        // Make a PATCH request to update the event data
+        const response = await fetch(
+          `http://localhost:3000/events/${eventId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ eventData }),
+          }
+        );
+
+        if (response.ok) {
+          console.log("Event data updated successfully");
+        } else {
+          console.error("Failed to update event data");
+        }
+      } catch (error) {
+        console.error("Error updating event data:", error);
+      }
+    }
+  }
 
   // Update the values in editable fields with input field values
   editableFields.forEach((field, index) => {
@@ -134,7 +220,6 @@ function handleSave(
     }
   });
 
-  // Make editable fields visible and input fields hidden
   editableFields.forEach((field) => (field.style.display = "inline-block"));
   editFields.forEach((field) => (field.style.display = "none"));
 }
@@ -177,6 +262,19 @@ function handleDelete(event: MouseEvent): void {
   if (row) {
     row.remove();
   }
+}
+
+function formatDateTime(dateTimeString: string): string {
+  const date = new Date(dateTimeString);
+  const formattedDate = date.toISOString().slice(0, 16); // "yyyy-MM-ddThh:mm"
+  return formattedDate;
+}
+
+function parseFormattedDate(formattedDate: string): string {
+  // formato que estava
+  const dateParts = formattedDate.split("T");
+  const date = new Date(dateParts[0] + "T" + dateParts[1] + ":00.000Z");
+  return date.toISOString().slice(0, 19).replace("T", " "); // Original format: "yyyy-MM-dd hh:mm"
 }
 
 // Call the populateTable function when the page loads
