@@ -248,18 +248,37 @@ function handleCancel(
 }
 
 // Handle delete button click
-function handleDelete(event: MouseEvent): void {
+// Handle delete button click
+async function handleDelete(event: MouseEvent): Promise<void> {
   const button: HTMLButtonElement = event.currentTarget as HTMLButtonElement;
-  const local: string | null = button.getAttribute("data-local");
 
-  // Implement your delete logic here
-  if (local) {
-    console.log(`Delete clicked for event with local: ${local}`);
-  }
-
-  // Remove the table row from the DOM
+  // Find the closest table row
   const row: HTMLTableRowElement | null = button.closest("tr");
+
   if (row) {
+    // Get the event ID from the data-id attribute
+    const eventId: string | null = row
+      .querySelector("td[data-id]")
+      ?.getAttribute("data-id");
+    if (eventId) {
+      await fetch(`http://localhost:3000/events/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            console.log(`Event with ID ${eventId} deleted successfully`);
+          } else {
+            console.error(`Failed to delete event with ID ${eventId}`);
+          }
+        })
+        .catch((error) => {
+          console.error("Error deleting event:", error);
+        });
+    }
+    // Remove the table row from the DOM
     row.remove();
   }
 }
