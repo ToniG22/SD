@@ -3,8 +3,8 @@ kind: Service
 metadata:
   name: sd-frontend-service
 spec:
-  type: NodePort
-  #type: LoadBalancer
+  #type: NodePort
+  type: LoadBalancer
   selector:
     app: sd-frontend
   ports:
