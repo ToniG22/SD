@@ -41,6 +41,11 @@ function handleFormSubmit(event) {
     .then(response => response.json())
     .then(data => {
         console.log('Success:', data);
+        localInput.value = '';
+        dateInput.value = '';
+        timeInput.value = '';
+        participantsInput.value = '';
+        priceInput.value = '';
         // Handle success, e.g., update UI or navigate to another page
     })
     .catch(error => {

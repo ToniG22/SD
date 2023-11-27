@@ -26,7 +26,7 @@ function handleFormSubmit(event) {
         price: price
     };
     // Make a POST request to the server
-    fetch('http://localhost:3000/events', {
+    fetch('http://10.2.15.143:30150/events', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -36,6 +36,11 @@ function handleFormSubmit(event) {
         .then(response => response.json())
         .then(data => {
         console.log('Success:', data);
+        localInput.value = '';
+        dateInput.value = '';
+        timeInput.value = '';
+        participantsInput.value = '';
+        priceInput.value = '';
         // Handle success, e.g., update UI or navigate to another page
     })
         .catch(error => {

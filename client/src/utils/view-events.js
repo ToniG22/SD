@@ -2,7 +2,7 @@
 [];
 function populateTable() {
     const tableBody = document.querySelector("tbody");
-    fetch("http://localhost:3000/events", {
+    fetch("http://10.2.15.143:30150/events", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -14,7 +14,7 @@ function populateTable() {
             const row = document.createElement("tr");
             row.innerHTML = `
                   <td data-id="${event.Id}"><span class="editable editable-local">${event.Local}</span><input type="text" class="edit-field edit-local" value="${event.Local}" style="display:none;"></td>
-                  <td data-id="${event.Id}"><span class="editable editable-date">${event.Date}</span><input type="datetime-local" class="edit-field edit-date" value="${formatDateTime(event.Date)}" style="display:none;"></td>
+                  <td data-id="${event.Id}"><span class="editable editable-date">${formatDateTime(event.Date)}</span><input type="datetime-local" class="edit-field edit-date" value="${formatDateTime(event.Date)}" style="display:none;"></td>
                   <td data-id="${event.Id}"><span class="editable editable-participants">${event.Participants}</span><input type="text" class="edit-field edit-participants" value="${event.Participants}" style="display:none;"></td>
                   <td data-id="${event.Id}"><span class="editable editable-price">${event.Price}</span><input type="text" class="edit-field edit-price" value="${event.Price}" style="display:none;"></td>
                   <td>
@@ -80,7 +80,7 @@ async function handleSave(editButton, saveButton, cancelButton, editableFields, 
             console.log(eventData);
             try {
                 // Make a PATCH request to update the event data
-                const response = await fetch(`http://localhost:3000/events/${eventId}`, {
+                const response = await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
@@ -141,7 +141,7 @@ async function handleDelete(event) {
             .querySelector("td[data-id]")
             ?.getAttribute("data-id");
         if (eventId) {
-            await fetch(`http://localhost:3000/events/${eventId}`, {
+            await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",

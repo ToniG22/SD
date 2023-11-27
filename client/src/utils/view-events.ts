@@ -35,7 +35,7 @@ function populateTable(): void {
                   <td data-id="${
                     event.Id
                   }"><span class="editable editable-date">${
-          event.Date
+                    formatDateTime(event.Date)
         }</span><input type="datetime-local" class="edit-field edit-date" value="${formatDateTime(
           event.Date
         )}" style="display:none;"></td>
