@@ -31,7 +31,7 @@ function handleFormSubmit(event) {
     };
 
     // Make a POST request to the server
-    fetch('http://localhost:3000/events', {
+    fetch('http://10.2.15.143:30150/events', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
