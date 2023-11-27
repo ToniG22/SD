@@ -15,6 +15,7 @@ import (
 
 type Event struct {
 	Id           primitive.ObjectID `bson:"_id,omitempty"`
+	Name         string             `bson:"name"`
 	Local        string             `bson:"local"`
 	Date         time.Time          `bson:"date"`
 	EventTime    string             `bson:"eventTime"`
