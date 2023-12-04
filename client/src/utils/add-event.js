@@ -1,11 +1,13 @@
 // Function to handle form submission
 function handleFormSubmit(event) {
     event.preventDefault();
+    const nameInput = document.getElementById('name');
     const localInput = document.getElementById('local');
     const dateInput = document.getElementById('date');
     const timeInput = document.getElementById('time');
     const participantsInput = document.getElementById('participants');
     const priceInput = document.getElementById('price');
+    const name = nameInput.value;
     const local = localInput.value;
     const date = dateInput.value;
     const time = timeInput.value;
@@ -19,6 +21,7 @@ function handleFormSubmit(event) {
     console.log('Price:', price);
     // Create an object with the form data
     const eventData = {
+        name: name,
         local: local,
         date: new Date(date),
         eventTime: time,
@@ -26,7 +29,7 @@ function handleFormSubmit(event) {
         price: price
     };
     // Make a POST request to the server
-    fetch('http://10.2.15.143:30150/events', {
+    fetch('http://localhost:3000/events', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -36,6 +39,7 @@ function handleFormSubmit(event) {
         .then(response => response.json())
         .then(data => {
         console.log('Success:', data);
+        nameInput.value = '';
         localInput.value = '';
         dateInput.value = '';
         timeInput.value = '';

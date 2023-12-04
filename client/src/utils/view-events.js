@@ -2,7 +2,7 @@
 [];
 function populateTable() {
     const tableBody = document.querySelector("tbody");
-    fetch("http://10.2.15.143:30150/events", {
+    fetch("http://localhost:3000/events", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -13,6 +13,7 @@ function populateTable() {
         data.forEach((event) => {
             const row = document.createElement("tr");
             row.innerHTML = `
+        <td data-id="${event.Id}"><span class="editable editable-name">${event.Name}</span><input type="text" class="edit-field edit-name" value="${event.Name}" style="display:none;"></td>
                   <td data-id="${event.Id}"><span class="editable editable-local">${event.Local}</span><input type="text" class="edit-field edit-local" value="${event.Local}" style="display:none;"></td>
                   <td data-id="${event.Id}"><span class="editable editable-date">${formatDateTime(event.Date)}</span><input type="datetime-local" class="edit-field edit-date" value="${formatDateTime(event.Date)}" style="display:none;"></td>
                   <td data-id="${event.Id}"><span class="editable editable-participants">${event.Participants}</span><input type="text" class="edit-field edit-participants" value="${event.Participants}" style="display:none;"></td>
@@ -73,6 +74,7 @@ async function handleSave(editButton, saveButton, cancelButton, editableFields, 
             const eventData = {
                 date: new Date(formattedDate),
                 eventTime: "",
+                name: row.querySelector("td[data-id] .edit-field.edit-name")?.value || "",
                 local: row.querySelector("td[data-id] .edit-field.edit-local")?.value || "",
                 participants: parseInt(row.querySelector("td[data-id] .edit-field.edit-participants")?.value) || 0,
                 price: parseFloat(row.querySelector("td[data-id] .edit-field.edit-price")?.value) || 0,
@@ -80,7 +82,7 @@ async function handleSave(editButton, saveButton, cancelButton, editableFields, 
             console.log(eventData);
             try {
                 // Make a PATCH request to update the event data
-                const response = await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
+                const response = await fetch(`http://localhost:3000/events/${eventId}`, {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
@@ -141,7 +143,7 @@ async function handleDelete(event) {
             .querySelector("td[data-id]")
             ?.getAttribute("data-id");
         if (eventId) {
-            await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
+            await fetch(`http://localhost:3000/events/${eventId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -176,3 +178,4 @@ function parseFormattedDate(formattedDate) {
 }
 // Call the populateTable function when the page loads
 window.addEventListener("DOMContentLoaded", populateTable);
+//10.2.15.143:30150
