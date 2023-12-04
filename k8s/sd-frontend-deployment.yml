@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: sd-frontend
-          image: tonig22/sd_client:4
+          image: tonig22/sd_client:7
           resources:
             limits:
               memory: 512Mi
