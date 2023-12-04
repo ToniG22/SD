@@ -2,7 +2,7 @@
 [];
 function populateTable() {
     const tableBody = document.querySelector("tbody");
-    fetch("http://localhost:3000/events", {
+    fetch("http://10.2.15.143:30150/events", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -82,7 +82,7 @@ async function handleSave(editButton, saveButton, cancelButton, editableFields, 
             console.log(eventData);
             try {
                 // Make a PATCH request to update the event data
-                const response = await fetch(`http://localhost:3000/events/${eventId}`, {
+                const response = await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
@@ -143,7 +143,7 @@ async function handleDelete(event) {
             .querySelector("td[data-id]")
             ?.getAttribute("data-id");
         if (eventId) {
-            await fetch(`http://localhost:3000/events/${eventId}`, {
+            await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",

@@ -15,7 +15,7 @@ function populateTable(): void {
   const tableBody: HTMLTableSectionElement | null =
     document.querySelector("tbody");
 
-  fetch("http://localhost:3000/events", {
+  fetch("http://10.2.15.143:30150/events", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -202,7 +202,7 @@ async function handleSave(
       try {
         // Make a PATCH request to update the event data
         const response = await fetch(
-          `http://localhost:3000/events/${eventId}`,
+          `http://10.2.15.143:30150/events/${eventId}`,
           {
             method: "PATCH",
             headers: {
@@ -277,7 +277,7 @@ async function handleDelete(event: MouseEvent): Promise<void> {
       .querySelector("td[data-id]")
       ?.getAttribute("data-id");
     if (eventId) {
-      await fetch(`http://localhost:3000/events/${eventId}`, {
+      await fetch(`http://10.2.15.143:30150/events/${eventId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
