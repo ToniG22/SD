@@ -32,6 +32,8 @@ func main() {
 	app := fiber.New()
 	prometheus := fiberprometheus.New("webapp-service")
 	prometheus.RegisterAt(app, "/metrics")
+	prometheusFrontend := fiberprometheus.New("sd-frontend-service")
+	prometheusFrontend.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",

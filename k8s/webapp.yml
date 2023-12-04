@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: webapp
-          image: tonig22/sd_server:9
+          image: tonig22/sd_server:
           resources:
             limits:
               memory: 512Mi
