@@ -30,16 +30,15 @@ var mongoCtx context.Context
 
 func main() {
 	app := fiber.New()
-	prometheus := fiberprometheus.New("webapp-service")
-	prometheus.RegisterAt(app, "/metrics")
-	prometheusFrontend := fiberprometheus.New("sd-frontend-service")
-	prometheusFrontend.RegisterAt(app, "/metrics")
-	app.Use(prometheus.Middleware)
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET, POST, PUT, DELETE,PATCH",
 	}))
+	prometheus := fiberprometheus.New("webapp-service")
+	prometheus.RegisterAt(app, "/metrics")
+	app.Use(prometheus.Middleware)
 	go func() {
 		mongoCtx = context.Background()
 		clientOptions := options.Client().ApplyURI("mongodb+srv://Michief:2005130mm@cluster0.uznqk.mongodb.net/sd")
