@@ -30,7 +30,7 @@ var mongoCtx context.Context
 
 func main() {
 	app := fiber.New()
-	prometheus := fiberprometheus.New("my-service-name")
+	prometheus := fiberprometheus.New("webapp-service")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 	app.Use(cors.New(cors.Config{
