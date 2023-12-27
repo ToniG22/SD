@@ -12,6 +12,3 @@ cd path/to/server &&
 go mod tidy &&
 go run main.go
 
-#To run the project use
-
-kubectl port-forward svc/webapp-service 3000:3000 -n sge
